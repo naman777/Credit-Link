@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const validationResult = kycVerifySchema.safeParse(body);
     if (!validationResult.success) {
       return validationErrorResponse(
-        validationResult.error.errors[0].message
+        validationResult.error.issues[0].message
       );
     }
 

@@ -7,6 +7,7 @@ import {
   errorResponse,
   validationErrorResponse,
 } from '@/lib/utils/api-response';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const validationResult = registerSchema.safeParse(body);
     if (!validationResult.success) {
       return validationErrorResponse(
-        validationResult.error.errors[0].message
+        validationResult.error.issues[0].message
       );
     }
 
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     const password_hash = await hashPassword(password);
 
     // Create user with wallet and credit score
-    const user = await prisma.$transaction(async (tx) => {
+    const user = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Create user
       const newUser = await tx.user.create({
         data: {

@@ -23,14 +23,14 @@ export async function POST(request: NextRequest) {
     const validationResult = withdrawSchema.safeParse(body);
     if (!validationResult.success) {
       return validationErrorResponse(
-        validationResult.error.errors[0].message
+        validationResult.error.issues[0].message
       );
     }
 
     const { amount } = validationResult.data;
 
     // Perform withdrawal transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Get wallet
       const wallet = await tx.wallet.findUnique({
         where: { user_id: user.userId },

@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
     });
 
     const activeLoans = loanHistory.filter(
-      (l) => l.contract?.status === 'ACTIVE'
+      (l: any) => l.contract?.status === 'ACTIVE'
     ).length;
     const closedLoans = loanHistory.filter(
-      (l) => l.contract?.status === 'CLOSED'
+      (l: any) => l.contract?.status === 'CLOSED'
     ).length;
 
     return successResponse({

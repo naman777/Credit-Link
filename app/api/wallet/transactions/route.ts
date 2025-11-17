@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     });
 
     return successResponse({
-      transactions: transactions.map((tx) => ({
+      transactions: transactions.map((tx: any) => ({
         id: tx.id,
         type: tx.tx_type,
         amount: tx.amount,

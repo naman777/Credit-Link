@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     });
 
     return successResponse({
-      products: products.map((p) => ({
+      products: products.map((p: any) => ({
         id: p.id,
         name: p.name,
         min_amount: p.min_amount,

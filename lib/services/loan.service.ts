@@ -57,7 +57,7 @@ export function generateRepaymentSchedule(
  * Disburse a loan - Transfer money to borrower and create repayment schedule
  */
 export async function disburseLoan(applicationId: string, lenderId: string) {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: any) => {
     // Get application with product details
     const application = await tx.loanApplication.findUnique({
       where: { id: applicationId },
@@ -221,7 +221,7 @@ export async function disburseLoan(applicationId: string, lenderId: string) {
  * Calculate credit score based on repayment history
  */
 export async function recalculateCreditScore(userId: string) {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: any) => {
     const creditScore = await tx.creditScore.findUnique({
       where: { user_id: userId },
     });

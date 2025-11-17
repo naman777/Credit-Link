@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     });
 
     return successResponse({
-      applications: applications.map((app) => ({
+      applications: applications.map((app: any) => ({
         id: app.id,
         product: {
           id: app.product.id,

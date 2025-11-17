@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const validationResult = rejectLoanSchema.safeParse(body);
     if (!validationResult.success) {
       return validationErrorResponse(
-        validationResult.error.errors[0].message
+        validationResult.error.issues[0].message
       );
     }
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update application status
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: any) => {
       const app = await tx.loanApplication.update({
         where: { id: application_id },
         data: {
