@@ -1,0 +1,322 @@
+// This is your Prisma schema file for Credit-Link Platform
+// Micro-lending P2P platform with comprehensive database design
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 1. USER - Core user entity
+// ============================================
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  phone         String   @unique
+  password_hash String
+  role          UserRole @default(BORROWER)
+  status        UserStatus @default(ACTIVE)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relationships
+  kyc_documents      KYCDocument[]
+  wallet             Wallet?
+  credit_score       CreditScore?
+  loan_applications  LoanApplication[]
+  loans_as_lender    LoanContract[]
+  notifications      NotificationLog[]
+  wallet_transactions WalletTransaction[]
+
+  @@index([email])
+  @@index([phone])
+  @@map("users")
+}
+
+enum UserRole {
+  BORROWER
+  LENDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+// ============================================
+// 2. KYC_DOCUMENT - Identity verification
+// ============================================
+model KYCDocument {
+  id                  String   @id @default(uuid())
+  user_id             String
+  doc_type            DocType
+  doc_number          String
+  verification_status VerificationStatus @default(PENDING)
+  verified_at         DateTime?
+  created_at          DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("kyc_documents")
+}
+
+enum DocType {
+  AADHAAR
+  PAN
+  PASSPORT
+  DRIVING_LICENSE
+  VOTER_ID
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+// ============================================
+// 3. WALLET - User wallet for transactions
+// ============================================
+model Wallet {
+  id              String   @id @default(uuid())
+  user_id         String   @unique
+  current_balance Decimal  @default(0) @db.Decimal(12, 2)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relationships
+  user         User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+// ============================================
+// 4. WALLET_TRANSACTION - All wallet movements
+// ============================================
+model WalletTransaction {
+  id             String          @id @default(uuid())
+  wallet_id      String
+  user_id        String
+  tx_type        TransactionType
+  amount         Decimal         @db.Decimal(12, 2)
+  reference_type ReferenceType?
+  reference_id   String?
+  timestamp      DateTime        @default(now())
+  description    String?
+
+  // Relationships
+  wallet Wallet @relation(fields: [wallet_id], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([wallet_id])
+  @@index([user_id])
+  @@index([timestamp])
+  @@map("wallet_transactions")
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum ReferenceType {
+  LOAN_DISBURSAL
+  REPAYMENT
+  DEPOSIT
+  WITHDRAWAL
+  PENALTY
+}
+
+// ============================================
+// 5. LOAN_PRODUCT - Predefined loan products
+// ============================================
+model LoanProduct {
+  id              String   @id @default(uuid())
+  name            String
+  min_amount      Decimal  @db.Decimal(12, 2)
+  max_amount      Decimal  @db.Decimal(12, 2)
+  interest_rate   Decimal  @db.Decimal(5, 2) // Annual percentage
+  tenure_months   Int
+  processing_fee  Decimal  @db.Decimal(12, 2)
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+
+  // Relationships
+  loan_applications LoanApplication[]
+
+  @@map("loan_products")
+}
+
+// ============================================
+// 6. LOAN_APPLICATION - Borrower requests
+// ============================================
+model LoanApplication {
+  id                String              @id @default(uuid())
+  borrower_id       String
+  product_id        String
+  requested_amount  Decimal             @db.Decimal(12, 2)
+  status            ApplicationStatus   @default(PENDING)
+  purpose           String?
+  rejection_reason  String?
+  created_at        DateTime            @default(now())
+  reviewed_at       DateTime?
+  reviewed_by       String?
+
+  // Relationships
+  borrower User         @relation(fields: [borrower_id], references: [id], onDelete: Cascade)
+  product  LoanProduct  @relation(fields: [product_id], references: [id])
+  contract LoanContract?
+
+  @@index([borrower_id])
+  @@index([status])
+  @@map("loan_applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+// ============================================
+// 7. LOAN_CONTRACT - Active loans
+// ============================================
+model LoanContract {
+  id               String         @id @default(uuid())
+  application_id   String         @unique
+  lender_id        String
+  principal_amount Decimal        @db.Decimal(12, 2)
+  interest_rate    Decimal        @db.Decimal(5, 2)
+  tenure_months    Int
+  start_date       DateTime       @default(now())
+  end_date         DateTime
+  status           LoanStatus     @default(ACTIVE)
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+
+  // Relationships
+  application        LoanApplication      @relation(fields: [application_id], references: [id])
+  lender             User                 @relation(fields: [lender_id], references: [id])
+  repayment_schedule RepaymentSchedule[]
+
+  @@index([lender_id])
+  @@index([status])
+  @@map("loan_contracts")
+}
+
+enum LoanStatus {
+  ACTIVE
+  CLOSED
+  DEFAULTED
+}
+
+// ============================================
+// 8. REPAYMENT_SCHEDULE - EMI tracking
+// ============================================
+model RepaymentSchedule {
+  id                   String              @id @default(uuid())
+  loan_id              String
+  installment_number   Int
+  due_date             DateTime
+  amount_due           Decimal             @db.Decimal(12, 2)
+  principal_component  Decimal             @db.Decimal(12, 2)
+  interest_component   Decimal             @db.Decimal(12, 2)
+  status               RepaymentStatus     @default(PENDING)
+  paid_on              DateTime?
+  late_fee             Decimal?            @db.Decimal(12, 2)
+  created_at           DateTime            @default(now())
+
+  // Relationships
+  loan                LoanContract          @relation(fields: [loan_id], references: [id], onDelete: Cascade)
+  repayment_transaction RepaymentTransaction?
+
+  @@index([loan_id])
+  @@index([due_date])
+  @@index([status])
+  @@map("repayment_schedules")
+}
+
+enum RepaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  PARTIAL
+}
+
+// ============================================
+// 9. REPAYMENT_TRANSACTION - Payment records
+// ============================================
+model RepaymentTransaction {
+  id             String   @id @default(uuid())
+  schedule_id    String   @unique
+  paid_amount    Decimal  @db.Decimal(12, 2)
+  late_fee       Decimal  @default(0) @db.Decimal(12, 2)
+  paid_at        DateTime @default(now())
+
+  // Relationships
+  schedule RepaymentSchedule @relation(fields: [schedule_id], references: [id], onDelete: Cascade)
+
+  @@index([paid_at])
+  @@map("repayment_transactions")
+}
+
+// ============================================
+// 10. CREDIT_SCORE - User creditworthiness
+// ============================================
+model CreditScore {
+  id                 String   @id @default(uuid())
+  user_id            String   @unique
+  score              Int      @default(600)
+  total_loans_taken  Int      @default(0)
+  defaults_count     Int      @default(0)
+  on_time_payments   Int      @default(0)
+  late_payments      Int      @default(0)
+  last_updated       DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("credit_scores")
+}
+
+// ============================================
+// 11. NOTIFICATION_LOG - System notifications
+// ============================================
+model NotificationLog {
+  id         String           @id @default(uuid())
+  user_id    String
+  message    String
+  type       NotificationType
+  is_read    Boolean          @default(false)
+  created_at DateTime         @default(now())
+
+  // Relationships
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([is_read])
+  @@map("notification_logs")
+}
+
+enum NotificationType {
+  LOAN_APPROVED
+  LOAN_REJECTED
+  EMI_DUE
+  EMI_OVERDUE
+  REPAYMENT_SUCCESS
+  WALLET_CREDIT
+  WALLET_DEBIT
+  KYC_VERIFIED
+  KYC_REJECTED
+}
