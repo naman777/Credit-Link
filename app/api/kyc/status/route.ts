@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     });
 
     return successResponse({
-      documents: kycDocuments.map((doc) => ({
+      documents: kycDocuments.map((doc: any) => ({
         id: doc.id,
         doc_type: doc.doc_type,
         doc_number: doc.doc_number,
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         verified_at: doc.verified_at,
       })),
       has_verified_kyc: kycDocuments.some(
-        (doc) => doc.verification_status === 'VERIFIED'
+        (doc: any) => doc.verification_status === 'VERIFIED'
       ),
     });
   } catch (error: any) {

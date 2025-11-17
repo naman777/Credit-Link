@@ -9,7 +9,7 @@ export async function makeRepayment(
   scheduleId: string,
   amount: number
 ) {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: any) => {
     // Get repayment schedule
     const schedule = await tx.repaymentSchedule.findUnique({
       where: { id: scheduleId },

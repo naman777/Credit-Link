@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     return successResponse({
       loan_id: loanId,
-      schedule: schedule.map((s) => ({
+      schedule: schedule.map((s: any) => ({
         id: s.id,
         installment_number: s.installment_number,
         due_date: s.due_date,
