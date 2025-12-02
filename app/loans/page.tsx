@@ -37,8 +37,9 @@ export default function LoansPage() {
     try {
       const result = await apiClient.getLoanApplications();
       if (result.success) {
-        const data = result.data?.applications || result.data;
-        setLoanApplications(Array.isArray(data) ? data : []);
+        const data = result.data as { applications?: LoanApplication[] } | LoanApplication[];
+        const loansData = Array.isArray(data) ? data : (data?.applications || []);
+        setLoanApplications(loansData);
       }
     } catch (error) {
       console.error('Failed to load loan applications:', error);

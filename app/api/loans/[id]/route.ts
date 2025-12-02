@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { authenticate } from '@/lib/utils/middleware';
 import { apiResponse, apiError } from '@/lib/utils/api-response';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticate(request);
-    if (authResult instanceof NextResponse) return authResult;
+    if (!('user' in authResult)) return authResult;
 
     const { id } = await params;
-    const userId = authResult.userId;
+    const userId = authResult.user.userId;
 
     const application = await prisma.loanApplication.findUnique({
       where: { id },

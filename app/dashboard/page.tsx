@@ -49,8 +49,9 @@ export default function DashboardPage() {
       if (walletRes.success) setWallet(walletRes.data);
       if (creditRes.success) setCreditScore(creditRes.data);
       if (loansRes.success) {
-        const loansData = loansRes.data?.applications || loansRes.data;
-        setLoanApplications(Array.isArray(loansData) ? loansData : []);
+        const data = loansRes.data as { applications?: LoanApplication[] } | LoanApplication[];
+        const loansData = Array.isArray(data) ? data : (data?.applications || []);
+        setLoanApplications(loansData);
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);

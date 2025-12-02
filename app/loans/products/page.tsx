@@ -29,8 +29,9 @@ export default function LoanProductsPage() {
     try {
       const result = await apiClient.getLoanProducts();
       if (result.success) {
-        const data = result.data?.products || result.data;
-        setProducts(Array.isArray(data) ? data : []);
+        const data = result.data as { products?: LoanProduct[] } | LoanProduct[];
+        const productsData = Array.isArray(data) ? data : (data?.products || []);
+        setProducts(productsData);
       }
     } catch (error) {
       console.error('Failed to load products:', error);

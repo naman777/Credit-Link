@@ -1,15 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { authenticate, requireRole } from '@/lib/utils/middleware';
 import { apiResponse, apiError } from '@/lib/utils/api-response';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const authResult = await authenticate(request);
-    if (authResult instanceof NextResponse) return authResult;
+    if (!('user' in authResult)) return authResult;
 
-    const roleCheck = requireRole(authResult, ['ADMIN']);
-    if (roleCheck) return roleCheck;
+    const { user } = authResult;
+    if (!requireRole(user, ['ADMIN'])) {
+      return apiError('Unauthorized', 403);
+    }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'PENDING';

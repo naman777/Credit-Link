@@ -16,6 +16,15 @@ export function calculateEMI(
   return Math.round(emi * 100) / 100;
 }
 
+interface RepaymentScheduleItem {
+  installment_number: number;
+  due_date: Date;
+  amount_due: number;
+  principal_component: number;
+  interest_component: number;
+  status: 'PENDING';
+}
+
 /**
  * Generate repayment schedule for a loan
  */
@@ -24,11 +33,11 @@ export function generateRepaymentSchedule(
   annualRate: number,
   tenureMonths: number,
   startDate: Date
-) {
+): RepaymentScheduleItem[] {
   const monthlyRate = annualRate / 12 / 100;
   const emi = calculateEMI(principal, annualRate, tenureMonths);
 
-  const schedule = [];
+  const schedule: RepaymentScheduleItem[] = [];
   let balance = principal;
 
   for (let i = 1; i <= tenureMonths; i++) {

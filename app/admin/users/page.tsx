@@ -94,16 +94,18 @@ export default function AdminUsersPage() {
     }
   };
 
-  const getRoleVariant = (role: string) => {
+  type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'pink' | 'gradient';
+
+  const getRoleVariant = (role: string): BadgeVariant => {
     switch (role) {
       case 'ADMIN': return 'danger';
-      case 'LENDER': return 'primary';
+      case 'LENDER': return 'purple';
       case 'BORROWER': return 'success';
       default: return 'default';
     }
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): BadgeVariant => {
     switch (status) {
       case 'ACTIVE': return 'success';
       case 'SUSPENDED': return 'danger';

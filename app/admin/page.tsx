@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                   </svg>
                 </div>
                 <p className="font-semibold text-gray-900 dark:text-white">Loan Approvals</p>
-                <Badge variant="primary" size="sm" className="mt-2">
+                <Badge variant="info" size="sm" className="mt-2">
                   {stats?.pendingLoans || 0} Pending
                 </Badge>
               </CardContent>
