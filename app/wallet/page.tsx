@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 
 interface WalletData {
-  current_balance: string | number;
+  balance: string | number;
   updated_at: string;
 }
 
@@ -46,7 +46,7 @@ export default function WalletPage() {
 
       if (walletRes.success) setWallet(walletRes.data);
       if (txRes.success) {
-        const txData = txRes.data;
+        const txData = (txRes.data as any).transactions;
         setTransactions(Array.isArray(txData) ? txData : []);
       }
     } catch (error) {
@@ -91,7 +91,7 @@ export default function WalletPage() {
       return;
     }
 
-    if (wallet && withdrawAmount > Number(wallet.current_balance)) {
+    if (wallet && withdrawAmount > Number(wallet.balance)) {
       setError('Insufficient balance');
       return;
     }
@@ -144,7 +144,7 @@ export default function WalletPage() {
               <div>
                 <p className="text-sm font-medium text-white/80">Current Balance</p>
                 <div className="text-3xl font-bold text-white mt-1">
-                  ₹{wallet?.current_balance ? Number(wallet.current_balance).toLocaleString() : '0'}
+                  ₹{wallet?.balance ? Number(wallet.balance).toLocaleString() : '0'}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -314,7 +314,7 @@ export default function WalletPage() {
             </div>
           )}
           <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-400 px-4 py-3 rounded-xl text-sm">
-            Available: ₹{wallet?.current_balance ? Number(wallet.current_balance).toLocaleString() : '0'}
+            Available: ₹{wallet?.balance ? Number(wallet.balance).toLocaleString() : '0'}
           </div>
           <Input
             label="Amount"
