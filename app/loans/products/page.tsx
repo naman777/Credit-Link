@@ -7,8 +7,18 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
+interface LoanProduct {
+  id: string;
+  name: string;
+  min_amount: string | number;
+  max_amount: string | number;
+  interest_rate: string | number;
+  tenure_months: number;
+  processing_fee: string | number;
+}
+
 export default function LoanProductsPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<LoanProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +29,8 @@ export default function LoanProductsPage() {
     try {
       const result = await apiClient.getLoanProducts();
       if (result.success) {
-        setProducts(result.data || []);
+        const data = result.data?.products || result.data;
+        setProducts(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Failed to load products:', error);
@@ -31,9 +42,11 @@ export default function LoanProductsPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading products...</p>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-12 h-12 border-3 border-primary-100 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading products...</p>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -43,8 +56,8 @@ export default function LoanProductsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Loan Products</h1>
-          <p className="text-gray-600 mt-1">Choose the loan product that best fits your needs</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Loan Products</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Choose the loan product that best fits your needs</p>
         </div>
 
         {products.length === 0 ? (
@@ -63,30 +76,30 @@ export default function LoanProductsPage() {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-600">Loan Amount</p>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Loan Amount</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
                         ₹{Number(product.min_amount).toLocaleString()} - ₹
                         {Number(product.max_amount).toLocaleString()}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600">Interest Rate</p>
-                      <p className="text-lg font-semibold text-blue-600">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Interest Rate</p>
+                      <p className="text-lg font-semibold text-primary">
                         {Number(product.interest_rate)}% per annum
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600">Tenure</p>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Tenure</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
                         {product.tenure_months} months
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600">Processing Fee</p>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Processing Fee</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
                         ₹{Number(product.processing_fee).toLocaleString()}
                       </p>
                     </div>

@@ -64,3 +64,7 @@ export function notFoundResponse(message: string = 'Resource not found') {
 export function validationErrorResponse(message: string) {
   return errorResponse(message, 400);
 }
+
+// Aliases for convenience
+export const apiResponse = successResponse;
+export const apiError = errorResponse;

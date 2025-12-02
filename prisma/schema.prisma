@@ -320,3 +320,53 @@ enum NotificationType {
   KYC_VERIFIED
   KYC_REJECTED
 }
+
+// ============================================
+// 12. AUDIT_LOG - System audit trail
+// ============================================
+model AuditLog {
+  id          String     @id @default(uuid())
+  user_id     String?
+  action      AuditAction
+  entity_type String
+  entity_id   String
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime   @default(now())
+
+  @@index([user_id])
+  @@index([entity_type, entity_id])
+  @@index([created_at])
+  @@map("audit_logs")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  KYC_SUBMIT
+  KYC_VERIFY
+  KYC_REJECT
+  LOAN_APPLY
+  LOAN_APPROVE
+  LOAN_REJECT
+  PAYMENT_MADE
+  WALLET_DEPOSIT
+  WALLET_WITHDRAW
+}
+
+// ============================================
+// 13. SYSTEM_SETTINGS - Platform configuration
+// ============================================
+model SystemSettings {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  value      String
+  updated_at DateTime @updatedAt
+
+  @@map("system_settings")
+}

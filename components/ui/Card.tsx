@@ -6,9 +6,19 @@ interface CardProps {
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   hover?: boolean;
   gradient?: boolean;
+  glass?: boolean;
+  bordered?: boolean;
 }
 
-export function Card({ children, className = '', padding = 'md', hover = false, gradient = false }: CardProps) {
+export function Card({
+  children,
+  className = '',
+  padding = 'md',
+  hover = false,
+  gradient = false,
+  glass = false,
+  bordered = true
+}: CardProps) {
   const paddingStyles = {
     none: '',
     sm: 'p-4',
@@ -17,17 +27,30 @@ export function Card({ children, className = '', padding = 'md', hover = false, 
     xl: 'p-10',
   };
 
-  const hoverStyles = hover
-    ? 'transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer'
-    : 'transition-shadow duration-300';
+  const baseStyles = `
+    rounded-2xl
+    transition-all duration-300 ease-out
+  `;
 
-  const gradientStyles = gradient
-    ? 'bg-gradient-to-br from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-950'
-    : 'bg-white dark:bg-gray-800';
+  const hoverStyles = hover
+    ? 'hover:shadow-xl hover:-translate-y-1 cursor-pointer'
+    : '';
+
+  const backgroundStyles = glass
+    ? 'bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl'
+    : gradient
+    ? 'bg-gradient-to-br from-white via-gray-50/50 to-indigo-50/30 dark:from-gray-900 dark:via-gray-900/95 dark:to-indigo-950/30'
+    : 'bg-white dark:bg-gray-900';
+
+  const borderStyles = bordered
+    ? 'border border-gray-200/80 dark:border-gray-800/80'
+    : '';
+
+  const shadowStyles = 'shadow-sm hover:shadow-md';
 
   return (
     <div
-      className={`${gradientStyles} rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 ${paddingStyles[padding]} ${hoverStyles} backdrop-blur-sm ${className}`}
+      className={`${baseStyles} ${backgroundStyles} ${borderStyles} ${shadowStyles} ${paddingStyles[padding]} ${hoverStyles} ${className}`}
     >
       {children}
     </div>
@@ -35,23 +58,39 @@ export function Card({ children, className = '', padding = 'md', hover = false, 
 }
 
 export function CardHeader({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mb-6 ${className}`}>{children}</div>;
+  return <div className={`mb-5 ${className}`}>{children}</div>;
 }
 
 export function CardTitle({
   children,
   className = '',
   gradient = false,
+  size = 'default',
 }: {
   children: React.ReactNode;
   className?: string;
   gradient?: boolean;
+  size?: 'sm' | 'default' | 'lg';
 }) {
+  const sizeStyles = {
+    sm: 'text-lg',
+    default: 'text-xl',
+    lg: 'text-2xl',
+  };
+
   const gradientClass = gradient
-    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent'
+    ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent'
     : 'text-gray-900 dark:text-white';
 
-  return <h2 className={`text-2xl font-bold ${gradientClass} ${className}`}>{children}</h2>;
+  return (
+    <h2 className={`${sizeStyles[size]} font-bold tracking-tight ${gradientClass} ${className}`}>
+      {children}
+    </h2>
+  );
+}
+
+export function CardDescription({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <p className={`mt-1.5 text-sm text-gray-500 dark:text-gray-400 ${className}`}>{children}</p>;
 }
 
 export function CardContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -59,5 +98,46 @@ export function CardContent({ children, className = '' }: { children: React.Reac
 }
 
 export function CardFooter({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 ${className}`}>{children}</div>;
+  return (
+    <div className={`mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+export function CardStat({
+  label,
+  value,
+  trend,
+  trendDirection,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  trend?: string;
+  trendDirection?: 'up' | 'down';
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+        {trend && (
+          <p
+            className={`mt-1 text-sm font-medium ${
+              trendDirection === 'up' ? 'text-emerald-600' : 'text-red-600'
+            }`}
+          >
+            {trendDirection === 'up' ? '↑' : '↓'} {trend}
+          </p>
+        )}
+      </div>
+      {icon && (
+        <div className="p-3 bg-indigo-50 dark:bg-indigo-950/50 rounded-xl text-indigo-600 dark:text-indigo-400">
+          {icon}
+        </div>
+      )}
+    </div>
+  );
 }

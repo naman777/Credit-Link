@@ -9,9 +9,23 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 
+interface WalletData {
+  current_balance: string | number;
+  updated_at: string;
+}
+
+interface Transaction {
+  id: string;
+  tx_type: string;
+  amount: string | number;
+  reference_type?: string;
+  description?: string;
+  timestamp: string;
+}
+
 export default function WalletPage() {
-  const [wallet, setWallet] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -31,7 +45,10 @@ export default function WalletPage() {
       ]);
 
       if (walletRes.success) setWallet(walletRes.data);
-      if (txRes.success) setTransactions(txRes.data || []);
+      if (txRes.success) {
+        const txData = txRes.data;
+        setTransactions(Array.isArray(txData) ? txData : []);
+      }
     } catch (error) {
       console.error('Failed to load wallet data:', error);
     } finally {
@@ -58,7 +75,7 @@ export default function WalletPage() {
       } else {
         setError(result.error || 'Deposit failed');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred');
     } finally {
       setProcessing(false);
@@ -89,7 +106,7 @@ export default function WalletPage() {
       } else {
         setError(result.error || 'Withdrawal failed');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred');
     } finally {
       setProcessing(false);
@@ -99,9 +116,11 @@ export default function WalletPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading wallet...</p>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-12 h-12 border-3 border-primary-100 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading wallet...</p>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -109,32 +128,46 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fadeIn">
+        {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
-          <p className="text-gray-600 mt-1">Manage your funds and view transaction history</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Wallet</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Manage your funds and view transactions
+          </p>
         </div>
 
         {/* Wallet Balance */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Current Balance</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card className="bg-gradient-to-r from-primary via-secondary to-tertiary border-0">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-4xl font-bold text-blue-600">
+                <p className="text-sm font-medium text-white/80">Current Balance</p>
+                <div className="text-3xl font-bold text-white mt-1">
                   ₹{wallet?.current_balance ? Number(wallet.current_balance).toLocaleString() : '0'}
                 </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Last updated: {wallet ? new Date(wallet.updated_at).toLocaleString() : '-'}
-                </p>
               </div>
-              <div className="flex gap-3">
-                <Button onClick={() => setShowDepositModal(true)}>
+              <div className="flex gap-2">
+                <Button
+                  variant="glass"
+                  size="sm"
+                  onClick={() => setShowDepositModal(true)}
+                  className="text-white border-white/20 hover:bg-white/20"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
                   Deposit
                 </Button>
-                <Button variant="secondary" onClick={() => setShowWithdrawModal(true)}>
+                <Button
+                  variant="glass"
+                  size="sm"
+                  onClick={() => setShowWithdrawModal(true)}
+                  className="text-white border-white/20 hover:bg-white/20"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
                   Withdraw
                 </Button>
               </div>
@@ -145,36 +178,71 @@ export default function WalletPage() {
         {/* Transaction History */}
         <Card>
           <CardHeader>
-            <CardTitle>Transaction History</CardTitle>
+            <CardTitle size="sm">Transaction History</CardTitle>
           </CardHeader>
           <CardContent>
             {transactions.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No transactions yet</p>
+              <div className="text-center py-8">
+                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No transactions yet</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {transactions.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <Badge variant={tx.tx_type === 'CREDIT' ? 'success' : 'danger'}>
-                          {tx.tx_type}
-                        </Badge>
-                        <span className="text-sm text-gray-600">
-                          {tx.reference_type ? tx.reference_type.replace(/_/g, ' ') : 'Transaction'}
-                        </span>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        tx.tx_type === 'CREDIT'
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                          : 'bg-red-100 dark:bg-red-900/30'
+                      }`}>
+                        <svg
+                          className={`w-5 h-5 ${
+                            tx.tx_type === 'CREDIT'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {tx.tx_type === 'CREDIT' ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                          )}
+                        </svg>
                       </div>
-                      {tx.description && (
-                        <p className="text-sm text-gray-500 mt-1">{tx.description}</p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(tx.timestamp).toLocaleString()}
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={tx.tx_type === 'CREDIT' ? 'success' : 'danger'} size="sm">
+                            {tx.tx_type}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {tx.reference_type?.replace(/_/g, ' ') || 'Transaction'}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {new Date(tx.timestamp).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
                     </div>
-                    <div className={`text-lg font-semibold ${
-                      tx.tx_type === 'CREDIT' ? 'text-green-600' : 'text-red-600'
+                    <div className={`text-lg font-bold ${
+                      tx.tx_type === 'CREDIT'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-red-600 dark:text-red-400'
                     }`}>
                       {tx.tx_type === 'CREDIT' ? '+' : '-'}₹{Number(tx.amount).toLocaleString()}
                     </div>
@@ -198,7 +266,7 @@ export default function WalletPage() {
       >
         <div className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
               {error}
             </div>
           )}
@@ -211,11 +279,11 @@ export default function WalletPage() {
             fullWidth
           />
           <div className="flex gap-3">
-            <Button onClick={handleDeposit} fullWidth disabled={processing}>
+            <Button onClick={handleDeposit} fullWidth disabled={processing} loading={processing}>
               {processing ? 'Processing...' : 'Deposit'}
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => {
                 setShowDepositModal(false);
                 setAmount('');
@@ -241,12 +309,12 @@ export default function WalletPage() {
       >
         <div className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
               {error}
             </div>
           )}
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-            Available balance: ₹{wallet?.current_balance ? Number(wallet.current_balance).toLocaleString() : '0'}
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-400 px-4 py-3 rounded-xl text-sm">
+            Available: ₹{wallet?.current_balance ? Number(wallet.current_balance).toLocaleString() : '0'}
           </div>
           <Input
             label="Amount"
@@ -257,11 +325,11 @@ export default function WalletPage() {
             fullWidth
           />
           <div className="flex gap-3">
-            <Button onClick={handleWithdraw} fullWidth disabled={processing}>
+            <Button onClick={handleWithdraw} fullWidth disabled={processing} loading={processing}>
               {processing ? 'Processing...' : 'Withdraw'}
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => {
                 setShowWithdrawModal(false);
                 setAmount('');
