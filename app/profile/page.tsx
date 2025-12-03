@@ -39,7 +39,7 @@ export default function ProfilePage() {
 
       if (creditRes.success) setCreditScore(creditRes.data);
       if (kycRes.success) {
-        const kycData = kycRes.data;
+        const kycData = kycRes.data.documents;
         setKycStatus(Array.isArray(kycData) ? kycData : []);
       }
     } catch (error) {
