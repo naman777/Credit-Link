@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 export const loanApplicationSchema = z.object({
-  product_id: z.string().uuid('Invalid product ID'),
+  product_id: z.string(),
   requested_amount: z.number().positive('Amount must be positive'),
   purpose: z.string().optional(),
 });
 
 export const approveLoanSchema = z.object({
-  application_id: z.string().uuid('Invalid application ID'),
-  lender_id: z.string().uuid('Invalid lender ID'),
+  application_id: z.string(),
+  lender_id: z.string(),
 });
 
 export const rejectLoanSchema = z.object({
-  application_id: z.string().uuid('Invalid application ID'),
+  application_id: z.string(),
   rejection_reason: z.string().min(10, 'Rejection reason must be at least 10 characters'),
 });
 
